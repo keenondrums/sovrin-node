@@ -23,8 +23,15 @@ def compose_cmd(cmd):
 
 def get_deps_list(package):
     logger.info('Getting dependencies for {}'.format(package))
-    ret = subprocess.run(compose_cmd(['get_package_dependencies_ubuntu', package]), shell=True, check=True, universal_newlines=True, timeout=TIMEOUT)
-    return ret.stdout
+    ret = subprocess.run(compose_cmd(['get_package_dependencies_ubuntu', package]), shell=True, check=True, universal_newlines=True, stdout=subprocess.PIPE, timeout=TIMEOUT)
+    
+    if ret.returncode != 0:
+        msg = 'Upgrade failed: get_deps_list returned {}'.format(retcode)
+        logger.error(msg)
+        raise Exception(msg)
+    
+    return ret.stdout.strip()
+
 
 def call_upgrade_script(version):
     logger.info('Upgrading sovrin node to version {}, test_mode {}'.format(version, int(test_mode)))
